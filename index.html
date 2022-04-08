@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="kr">
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="./js/vuex.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- 2. Link VCalendar Javascript (Plugin automatically installed) -->
+    <script src='https://unpkg.com/v-calendar'></script>
+</head>
+
+<body>
+    <div id="app">
+        {{ message }}
+        <my-component></my-component>
+        <my-local-component></my-local-component>
+        <v-calendar></v-calendar>
+        <v-date-picker v-model='date' />
+    </div>
+
+    <div id="stateapp">
+        {{ count }}
+        <button v-on:click="increment">increment</button>
+    </div>
+
+    <div id="vuexapp">
+        <my-component></my-component>
+        {{this.$store.state.test}}
+        <button v-on:click="fetchData">vuex data</button>
+        <b>count : {{this.$store.state.user}}</b><br>
+    </div>
+
+    <div id="axiosapp">
+        <my-component></my-component>
+        <button v-on:click="fetchData">get data</button>
+    </div>
+
+
+    <script>
+        //global component
+        Vue.component('my-component', {
+            template: '<div>전역 컴포넌트가 등록되었습니다.</div>'
+        });
+        //local component
+        var cmp = {
+            // 컴포넌트 내용
+            template: '<div>지역 컴포넌트가 등록되었습니다.</div>'
+        };
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                message: '안녕하세요 Vue!',
+                selectedDate: null,
+                date: new Date(),
+            },
+            // data() {
+            //     return {
+            //         date: new Date(),
+            //     }
+            // },
+            components: {
+                'my-local-component': cmp
+            }
+        })
+
+        //state
+        var stateapp = new Vue({
+            el: '#stateapp',
+            data() {
+                return {
+                    count: 0
+                }
+            },
+            // 액션
+            methods: {
+                increment() {
+                    this.count++
+                }
+            },
+            // template: `<div>{{ count }}</div>`,
+        })
+
+        //vuex state
+        Vue.use(Vuex);
+
+        var store = new Vuex.Store({
+            state: {
+                test: 'test',
+                user: []
+            },
+            mutations: {
+                fetchData(state, payload) {
+                    state.user = payload;
+                },
+            },
+            actions: {
+                fetchData({
+                    commit
+                }) {
+                    console.log('actions fetchData');
+                    axios.get('https://jsonplaceholder.typicode.com/users/')
+                        .then(function(response) {
+                            console.log(response);
+                            commit('fetchData', response.data)
+                        })
+                        .catch(function(error) {
+                            console.log(error);
+                        });
+                }
+            },
+            getters: {}
+        })
+
+        var vuexapp = new Vue({
+            el: '#vuexapp',
+            store: store,
+            methods: {
+                fetchData: function() {
+                    console.log('fetchData');
+                    this.$store.dispatch('fetchData')
+                }
+            }
+        })
+
+        //axiox
+        var axiosapp = new Vue({
+            el: '#axiosapp',
+            methods: {
+                fetchData: function() {
+                    axios.get('https://jsonplaceholder.typicode.com/users/')
+                        .then(function(response) {
+                            console.log(response);
+                        })
+                        .catch(function(error) {
+                            console.log(error);
+                        });
+                }
+            }
+        })
+    </script>
+
+</body>
+
+</html>
